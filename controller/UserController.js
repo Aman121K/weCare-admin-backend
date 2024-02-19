@@ -1,6 +1,7 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const User = require("../model/UserModel")
+const Leads = require("../model/LeadsModel")
 const { ObjectId } = require("mongodb")
 
 exports.addNewUser = async (req, res) => {
@@ -55,24 +56,28 @@ exports.loginUser = async (req, res) => {
     }
 }
 exports.UpdateAgentData = async (req, res) => {
-    const { user_id, gst, pan, aadhar, farm_no, owner_name, account_no } = req.body;
+    const { user_id, gst, pan, aadhar, farm_no, owner_name, account_no, mobile_no } = req.body;
     try {
         const getUser_id = await User.findOne({ _id: new ObjectId(user_id) });
         if (getUser_id) {
-            const updateAgentData = User.updateMany(
+            await User.updateMany(
                 { _id: new ObjectId(user_id) }, {
-                    $set: {
-                        gst: gst,
-                        pan: pan,
-                        aadhar: aadhar,
-                        Farm_no: farm_no,
-                        Owner_name: owner_name,
-                        Account_no: account_no,
-                        added_date: Date.now(),
-                    }
+                $set: {
+                    mobile_no: mobile_no,
+                    Gst: gst,
+                    Pan: pan,
+                    Aadhar: aadhar,
+                    Farm_no: farm_no,
+                    Owner_name: owner_name,
+                    Account_no: account_no,
+                    added_date: Date.now(),
+                }
             });
-            const updateAgent = await updateAgentData.save();
-            console.log("updateAgent>>>>", updateAgent)
+            return res.status(400).send({
+                success: 1,
+                message: "Data Updated Successfully.",
+                data: {}
+            });
             // const updateAgentData = await User
         }
         else {
@@ -85,6 +90,59 @@ exports.UpdateAgentData = async (req, res) => {
     }
     catch (error) {
         res.status(500).json({ message: error.message });
+    }
+}
+exports.allSubAdmins = async (req, res) => {
+    try {
+        const leadsData = [
+            {
+                $group: {
+                    _id: "$user_id",
+                    totalPrice: { $sum: "$price" },
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "userData"
+                }
+            },
+            {
+                $unwind: "$userData"
+            },
+            {
+                $project: {
+                    user_id: "$_id",
+                    totalPrice: 1,
+                    userData: {
+                        Owner_name: 1,
+                        email: 1,
+                        mobile: 1,
+                        Gst: 1,
+                    }
+                }
+            }
+        ];
+
+        const result = await Leads.aggregate(leadsData);
+        const data = {
+            user_id: result[0].user_id,
+            name: result[0].userData.Owner_name,
+            email: result[0].userData.email,
+            gst: result[0].userData.Owner_name,
+            mobile_no: result[0].userData.mobile,
+            total_earning: result[0].totalPrice
+        }
+
+        return res.status(200).json({
+            success: 1,
+            message: "Leads data aggregated successfully",
+            data: data
+        });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
     }
 }
 

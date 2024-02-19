@@ -1,7 +1,7 @@
 const Leads = require("../model/LeadsModel")
 
 exports.addLeads = async (req, res) => {
-    const { user_id, warranty_status, contact_name, phone_number, email, device_brand, device_emi_number, device_images, product_value } = req.body;
+    const { user_id, warranty_status, contact_name, phone_number, email, device_brand, device_emi_number, device_images, product_value, price } = req.body;
 
     const addLead = new Leads({
         user_id: user_id,
@@ -13,6 +13,7 @@ exports.addLeads = async (req, res) => {
         device_emi_number: device_emi_number,
         device_images: device_images,
         product_value: product_value,
+        price: price,
         added_date: Date.now(),
     });
 

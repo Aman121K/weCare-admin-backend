@@ -13,6 +13,7 @@ const LeadsSchema = new mongoose.Schema({
     device_emi_number: String,
     device_images: [String],
     product_value: String,
+    price: Number,
     added_date: { type: Date, default: Date.now },
 })
 module.exports = mongoose.model("Leads", LeadsSchema)

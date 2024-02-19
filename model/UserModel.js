@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema({
     mobile_no: Number,
     address: String,
     user_img: String,
-    gst: String,
+    Gst: String,
     Pan: String,
     Aadhar: String,
     Farm_no: String,
