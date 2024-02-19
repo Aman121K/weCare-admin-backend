@@ -1,0 +1,153 @@
+{
+	"info": {
+		"_postman_id": "17696dba-a02f-405a-9e4d-68e3a6964958",
+		"name": "WeCare",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18950314"
+	},
+	"item": [
+		{
+			"name": "AddUser",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\":\"vikas@gmail.com\",\n    \"password\":\"abcddw\",\n    \"type\":\"agent\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:6000/add-user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6000",
+					"path": [
+						"add-user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\":\"himasnh@gmail.com\",\n    \"password\":\"abcddw\",\n    \"type\":\"agent\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:6000/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6000",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add-lead",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{       \n        \"agent_id\":\"65cb82dd0255e0966ac80187\",\n        \"warranty_status\": \"DP\",\n        \"contact_name\": \"vikas\",\n        \"phone_number\": 7973960138,\n        \"email\": \"vik@gmail.com\",\n        \"device_brand\": \"xiomi\",\n        \"device_emi_number\": \"12214\",\n         \"device_images\": [\n        \"https://example.com/image1.jpg\",\n        \"https://example.com/image2.jpg\",\n        \"https://example.com/image3.jpg\"\n         ],\n        \"product_value\": \"24097\"\n    }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:6000/add-lead",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6000",
+					"path": [
+						"add-lead"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "show-all-leads",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:6000/show-all-leads",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6000",
+					"path": [
+						"show-all-leads"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update-agent-data",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\":\"65cb82dd0255e0966ac80187\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:6000/update-agent-data",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6000",
+					"path": [
+						"update-agent-data"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
