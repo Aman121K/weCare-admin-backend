@@ -127,20 +127,79 @@ exports.allSubAdmins = async (req, res) => {
         ];
 
         const result = await Leads.aggregate(leadsData);
-        const data = {
-            user_id: result[0].user_id,
-            name: result[0].userData.Owner_name,
-            email: result[0].userData.email,
-            gst: result[0].userData.Owner_name,
-            mobile_no: result[0].userData.mobile,
-            total_earning: result[0].totalPrice
-        }
+        console.log("re>>>>", result)
 
         return res.status(200).json({
             success: 1,
             message: "Leads data aggregated successfully",
-            data: data
+            data: result
         });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+exports.overviewData = async (req, res) => {
+    try {
+        const pipeline = [
+            {
+                $group: {
+                    _id: null,
+                    totalPrice: { $sum: "$price" }
+                }
+            }
+        ];
+        const subAdminAddedToday = await User.countDocuments({
+            added_date: {
+                $gte: new Date(new Date().setHours(0, 0, 0)), // Start of the current day
+                $lt: new Date(new Date().setHours(23, 59, 59)) // End of the current day
+            }
+        });
+        const LeadsAddedToday = await Leads.countDocuments({
+            added_date: {
+                $gte: new Date(new Date().setHours(0, 0, 0)), // Start of the current day
+                $lt: new Date(new Date().setHours(23, 59, 59)) // End of the current day
+            }
+        });
+
+        const EarningsToday = [
+            {
+                $match: {
+                    added_date: {
+                        $gte: new Date(new Date().setHours(0, 0, 0)), // Start of the current day
+                        $lt: new Date(new Date().setHours(23, 59, 59)) // End of the current day
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalPrice: { $sum: "$price" }
+                }
+            }
+        ];
+
+        const totalEarningsSingleDay = await Leads.aggregate(EarningsToday);
+        const subAdmin = (await User.find()).length;
+        const allLeads = (await Leads.find()).length;
+        const toalEarning = await Leads.aggregate(pipeline);
+
+        const FullData = {
+            subAdmin: subAdmin,
+            allLeads: allLeads,
+            toalEarning: toalEarning[0].totalPrice,
+        }
+        const oneDayData = {
+            subAdmin: subAdminAddedToday,
+            allLeads: LeadsAddedToday,
+            toalEarning: totalEarningsSingleDay[0].totalPrice,
+        }
+
+        return res.status(200).json({
+            success: 1,
+            message: "Data Found",
+            data: { fullData: FullData, oneDayData: oneDayData }
+        })
+
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
