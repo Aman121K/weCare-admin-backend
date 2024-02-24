@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
-const DB_URL = process.env.CONN_URL;
+const DB_URL = 'mongodb+srv://wecarewecare763:kQfG2Dw2IgBnG2EB@wecare.rjnxoit.mongodb.net/?retryWrites=true&w=majority&appName=weCare';
 
 const connectDB = async () => {
     try {
