@@ -5,7 +5,7 @@ const connectDB = require("./db");
 const bodyParser = require("body-parser");
 const routes = require("./routes/index");
 const cors = require("cors");
-const PORT = 80
+const PORT = 6002
 
 app.use(cors({
     origin: "*",
