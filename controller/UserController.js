@@ -10,7 +10,7 @@ exports.addNewUser = async (req, res) => {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-        return res.status(400).send({
+        return res.status(200).send({
             success: 1,
             message: "User already Exists. Please log in.",
             data: {}
@@ -44,7 +44,7 @@ exports.loginUser = async (req, res) => {
             })
         }
         else {
-            return res.status(400).send({
+            return res.status(200).send({
                 success: 0,
                 message: "User does not exist.",
                 data: {}
@@ -73,7 +73,7 @@ exports.UpdateAgentData = async (req, res) => {
                     added_date: Date.now(),
                 }
             });
-            return res.status(400).send({
+            return res.status(200).send({
                 success: 1,
                 message: "Data Updated Successfully.",
                 data: {}
@@ -81,7 +81,7 @@ exports.UpdateAgentData = async (req, res) => {
             // const updateAgentData = await User
         }
         else {
-            return res.status(400).send({
+            return res.status(200).send({
                 success: 0,
                 message: "User does not exist.",
                 data: {}
