@@ -6,7 +6,7 @@ const uploadController = require('../controller/uploadController');
 
 const orderController = require('../controllers/orderController');
 
-const contactRouter = require('./routes/contact');
+const {postContact, getAllUsers} = require('./routes/contact');
 
 const { addNewUser, loginUser, UpdateAgentData, allSubAdmins, overviewData } = require("../controller/UserController");
 const { addLeads, showAllLeads } = require("../controller/LeadsController");
@@ -25,6 +25,8 @@ router.post('/upload', upload.array('images'), uploadController.uploadImage);
 
 router.post('/api/create_order', orderController.createOrder);
 
-app.use('/contact', contactRouter);
+router.route("/contact").post(postContact);
+
+router.route("/users").get(getAllUsers);
 
 module.exports = router;

@@ -3,13 +3,30 @@ const Contact = require('../models/contact');
 
 exports.postContact = async (req, res) => {
   try {
-    const { name, email, message } = req.body;
-    // Save data to database using the Contact model
-    const contact = new Contact({ name, email, message });
-    await contact.save();
-    res.status(201).json({ message: 'Contact form data stored successfully' });
+    const response = req.body;
+    await Contact.create(response);
+    return res
+    .status(200)
+    .json({message: "message send successfully"});
+} catch (error) {
+    
+    return res
+    .status(400)
+    .json({message: "message not deliverd"});
+}
+};
+
+exports.getAllUsers = async (req, res, next) => {
+  try {
+      const users = await User.find();
+
+      if (!users || users.length === 0) {
+          return res.status(404).json({ message: "No Users found" });
+      }
+
+      return res.status(200).json(users);
   } catch (error) {
-    console.error('Error storing contact form data:', error);
-    res.status(500).json({ error: 'Internal server error' });
+      console.error(error);
+      return res.status(500).json({ message: "Internal Server Error" });
   }
 };
