@@ -1,12 +1,20 @@
-
 const mongoose = require('mongoose');
 
 const imageSchema = new mongoose.Schema({
-  filename: String,
-  contentType: String,
-  data: Buffer,
-});
+  filename: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  contentType: {
+    type: String,
+    required: true,
+  },
+  data: Buffer, // Consider whether storing image data directly is necessary
+}, { timestamps: true }); // Add timestamps for createdAt and updatedAt fields
 
-const Image = mongoose.model('Image', imageSchema);
+// Add indexes for efficient querying if needed
+imageSchema.index({ filename: 1 });
+imageSchema.index({ contentType: 1 });
 
-module.exports = Image;
+module.exports = mongoose.model('Image', imageSchema);

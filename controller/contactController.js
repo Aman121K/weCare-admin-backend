@@ -1,5 +1,5 @@
 
-const Contact = require('../models/contact');
+const Contact = require('../model/contact');
 
 exports.postContact = async (req, res) => {
   try {

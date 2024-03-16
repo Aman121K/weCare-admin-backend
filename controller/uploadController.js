@@ -1,6 +1,5 @@
-
 const AWS = require('aws-sdk');
-const Image = require('../models/Image');
+const Image = require('../model/Image.js');
 
 const s3 = new AWS.S3({
   accessKeyId: 'AKIAQBTFHEDHQ5QGDCOH',
@@ -10,6 +9,11 @@ const s3 = new AWS.S3({
 const uploadImage = async (req, res) => {
   try {
     const promises = req.files.map(async (file) => {
+      // Validate the file mimetype before uploading
+      if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.mimetype)) {
+        throw new Error('Unsupported file type');
+      }
+
       const params = {
         Bucket: 'bucket-image-upld',
         Key: file.originalname,
@@ -22,7 +26,7 @@ const uploadImage = async (req, res) => {
       const image = new Image({
         filename: file.originalname,
         contentType: file.mimetype,
-        data: file.buffer,
+        // Add other fields as needed (e.g., user ID, timestamps)
       });
       await image.save();
     });
@@ -32,7 +36,7 @@ const uploadImage = async (req, res) => {
     res.status(200).send('Images uploaded successfully');
   } catch (error) {
     console.error('Error uploading images:', error);
-    res.status(500).send('Error uploading images');
+    res.status(500).send('Error uploading images: ' + error.message);
   }
 };
 

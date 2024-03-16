@@ -2,8 +2,8 @@
 const Razorpay = require('razorpay');
 
 const razorpay = new Razorpay({
-  key_id: 'add key here',
-  key_secret: 'add secret key here',
+  key_id: 'rzp_test_uO5CW1cDit9nww',
+  key_secret: '5eQ1T4XLhk1VrRAHinsUdpDw',
 });
 
 const createOrder = async (req, res) => {
