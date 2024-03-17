@@ -81,7 +81,7 @@ exports.UpdateAgentData = async (req, res) => {
             // const updateAgentData = await User
         }
         else {
-            return res.status(200).send({
+            return res.status(400).send({
                 success: 0,
                 message: "User does not exist.",
                 data: {}
