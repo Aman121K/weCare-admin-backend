@@ -94,45 +94,24 @@ exports.UpdateAgentData = async (req, res) => {
 }
 exports.allSubAdmins = async (req, res) => {
     try {
-        const leadsData = [
-            {
-                $group: {
-                    _id: "$user_id",
-                    totalPrice: { $sum: "$price" },
-                }
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "userData"
-                }
-            },
-            {
-                $unwind: "$userData"
-            },
-            {
-                $project: {
-                    user_id: "$_id",
-                    totalPrice: 1,
-                    userData: {
-                        Owner_name: 1,
-                        email: 1,
-                        mobile: 1,
-                        Gst: 1,
-                    }
-                }
-            }
-        ];
+        const agentUsers = await User.find({ type: 'agent' }).exec();
+        console.log("agentUsers", agentUsers);
+        const leadsByAgent = [];
+        for (const agentUser of agentUsers) {
+            const leads = await Leads.find({ agent_id: agentUser._id.toString() }).exec();
+            let totalPrice = 0;
+            leads.forEach(lead => {
+                totalPrice += lead.price;
+            });
 
-        const result = await Leads.aggregate(leadsData);
-        console.log("re>>>>", result)
+            leadsByAgent.push({ agent: agentUser, leads, totalPrice });
+        }
 
+        console.log(leadsByAgent);
         return res.status(200).json({
             success: 1,
             message: "Leads data aggregated successfully",
-            data: result
+            data: leadsByAgent
         });
     } catch (error) {
         return res.status(500).json({ message: error.message });

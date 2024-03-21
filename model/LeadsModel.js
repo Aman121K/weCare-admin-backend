@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
 const LeadsSchema = new mongoose.Schema({
-    user_id: {
+    agent_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    },
+    },//Agent Id
     warranty_status: String,
     contact_name: String,
     phone_number: Number,
