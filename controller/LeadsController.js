@@ -40,104 +40,171 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 
+// exports.addLeads = async (req, res) => {
+//     let PdfUrl;
+//     const { agent_id, warranty_status, contact_name, phone_number, email, device_brand, device_emi_number, device_images, product_value, address, price } = req.body;
+//     try {
+//         const agentUser = await User.find({ _id: new ObjectId(agent_id) });
+
+//         console.log("agentUser", agentUser);
+//         if (agentUser) {
+//             const addLead = new Leads({
+//                 agent_id: agent_id,
+//                 warranty_status: warranty_status,
+//                 contact_name: contact_name,
+//                 phone_number: phone_number,
+//                 email: email,
+//                 device_brand: device_brand,
+//                 device_emi_number: device_emi_number,
+//                 device_images: device_images,
+//                 product_value: product_value,
+//                 address: address,
+//                 price: price,
+//                 added_date: Date.now(),
+//             });
+//             const newLead = await addLead.save();
+//             // const currentDate = new Date().toLocaleDateString(); // Get current date
+//             // const PriceData = await getGrandTotal(Number(product_value));
+//             // console.log("getGrandTotal>>", PriceData)
+//             // const invoiceData = {
+//             //     'Company Name': "KABUJI SERVICES INDIA PRIVATE LIMITED",
+//             //     'Company Address': "CO MOHAN VIR SO BRAHAM SINGH, HN 61 KH KABUJI SERVICES INDIA PRIVATE LIMITED, POST SARURPUR KALAN, BARAUT BAGHPAT ROAD, BIHARIPUR, Baghpat, Uttar Pradesh, 250619",
+//             //     'PAN Number': 'AAICK6814B',
+//             //     'GSTIN': '09AAICK6814B1ZM',
+//             //     'Invoice Number': 'INV-001',
+//             //     'Billing Address To': address,
+//             //     'Date': currentDate,
+//             //     'Device Emi Number': device_emi_number,
+//             //     'Product Details': [
+//             //         { name: device_brand, quantity: 1, price: product_value },
+//             //     ],
+//             //     'CGST': PriceData.TotalTax / 2,
+//             //     'SGST': PriceData.TotalTax / 2,
+//             //     'Grand Total': PriceData.GrandTotal,
+//             // };
+
+//             // const pdfDoc = new PDFDocument(); // Create a new PDFDocument
+//             // const invoiceName = await generateUniqueInvoiceName();
+//             // const pdfPath = `${__dirname}/${invoiceName}.pdf`; // Path to save the PDF
+
+//             // // Pipe PDF content to file
+//             // pdfDoc.pipe(fs.createWriteStream(pdfPath));
+
+//             // // Generate invoice content
+//             // await generateInvoice(pdfDoc, invoiceData);
+
+//             // // End the PDF document
+//             // pdfDoc.end();
+
+//             // // Wait for PDF generation to finish before uploading to S3
+//             // pdfDoc.on('finish', async () => {
+//             //     try {
+//             //         // Upload PDF to S3
+//             //         PdfUrl = await uploadToS3(pdfPath, `${invoiceName}.pdf`); //upload s3
+
+//             //         // Send email with PDF invoice attached
+//             //         const emailOptions = {
+//             //             from: 'javascript.pgl@gmail.com',
+//             //             to: email,
+//             //             subject: 'Your Invoice',
+//             //             text: `Please find attached invoice.`,
+//             //             attachments: [
+//             //                 {
+//             //                     fileName: `${invoiceName}.pdf`,
+//             //                     path: pdfPath,
+//             //                 }
+//             //             ]
+//             //         };
+
+//             //         await transporter.sendMail(emailOptions);
+
+//             //         res.send({
+//             //             success: 1,
+//             //             message: "Lead Added Successfully",
+//             //             data: { ...newLead._doc, PdfUrl: PdfUrl }
+//             //         });
+//             //     } catch (error) {
+//             //         console.error('Error:', error);
+//             //         res.status(500).json({ message: error.message });
+//             //     }
+//             // });
+//             res.send({
+//                 success: 1,
+//                 message: "Lead Added Successfully",
+//                 data: { newLead }
+//             });
+//         }
+
+//     } catch (error) {
+//         console.error('Error:', error);
+//         res.status(500).s.json({ message: error.message });
+//     }
+// }
 exports.addLeads = async (req, res) => {
     let PdfUrl;
     const { agent_id, warranty_status, contact_name, phone_number, email, device_brand, device_emi_number, device_images, product_value, address, price } = req.body;
+
+    const addLead = new Leads({
+        agent_id: agent_id,
+        warranty_status: warranty_status,
+        contact_name: contact_name,
+        phone_number: phone_number,
+        device_emi_number: device_emi_number,
+        device_images: device_images,
+        product_value: product_value,
+        address: address,
+        price: price,
+        added_date: Date.now(),
+    });
+
     try {
-        const agentUser = await User.find({ _id: new ObjectId(agent_id) });
+        const newLead = await addLead.save();
+        const PriceData = await getGrandTotal(Number(price));
+        const currentDate = moment().format("DD-MM-YYYY");
+        const invoiceData = {
+            'Company Name': "KABUJI SERVICES INDIA PRIVATE LIMITED",
+            'PAN Number': 'AAICK6814B',
+            'GSTIN': '09AAICK6814B1ZM',
+            'Invoice Number': 'INV-001',
+            'Billing Address From': "CO MOHAN VIR SO BRAHAM SINGH, HN 61 KH KABUJI SERVICES INDIA PRIVATE LIMITED, POST SARURPUR KALAN, BARAUT BAGHPAT ROAD, BIHARIPUR, Baghpat,Uttar Pradesh, 250619",
+            'Billing Address To': address,
+            'Date': currentDate,
+            'Device Emi Number': device_emi_number,
+            'Price': price,
+            'CGST': PriceData.TotalTax / 2,
+            'SGST': PriceData.TotalTax / 2,
+            'Grand Total': PriceData.GrandTotal,
+            // Add more invoice data as needed
+        };
+        const invoiceName = await generateUniqueInvoiceName();
+        PdfUrl = `https://wecare1.s3.ap-south-1.amazonaws.com/${invoiceName}.pdf`
+        // Generate the invoice PDF
+        generateInvoice(invoiceData)
+            .then(async (pdfBuffer) => {
+                // Set response headers for PDF content
+                const filePath = path.join(invoicesDirectory, `${invoiceName}.pdf`);
+                fs.writeFileSync(filePath, pdfBuffer);
+                await uploadToS3(filePath, `${invoiceName}.pdf`);
+                const emailOptions = {
+                    from: 'javascript.pgl@gmail.com',
+                    to: email,
+                    subject: 'Your OTP',
+                    text: `Plese check your Invoice`,
+                    attachments: [
+                        {
+                            fileName: `${invoiceName}.pdf`,
+                            path: filePath,
+                        }
+                    ]
+                };
 
-        console.log("agentUser", agentUser);
-        if (agentUser) {
-            const addLead = new Leads({
-                agent_id: agent_id,
-                warranty_status: warranty_status,
-                contact_name: contact_name,
-                phone_number: phone_number,
-                email: email,
-                device_brand: device_brand,
-                device_emi_number: device_emi_number,
-                device_images: device_images,
-                product_value: product_value,
-                address: address,
-                price: price,
-                added_date: Date.now(),
-            });
-            const newLead = await addLead.save();
-            // const currentDate = new Date().toLocaleDateString(); // Get current date
-            // const PriceData = await getGrandTotal(Number(product_value));
-            // console.log("getGrandTotal>>", PriceData)
-            // const invoiceData = {
-            //     'Company Name': "KABUJI SERVICES INDIA PRIVATE LIMITED",
-            //     'Company Address': "CO MOHAN VIR SO BRAHAM SINGH, HN 61 KH KABUJI SERVICES INDIA PRIVATE LIMITED, POST SARURPUR KALAN, BARAUT BAGHPAT ROAD, BIHARIPUR, Baghpat, Uttar Pradesh, 250619",
-            //     'PAN Number': 'AAICK6814B',
-            //     'GSTIN': '09AAICK6814B1ZM',
-            //     'Invoice Number': 'INV-001',
-            //     'Billing Address To': address,
-            //     'Date': currentDate,
-            //     'Device Emi Number': device_emi_number,
-            //     'Product Details': [
-            //         { name: device_brand, quantity: 1, price: product_value },
-            //     ],
-            //     'CGST': PriceData.TotalTax / 2,
-            //     'SGST': PriceData.TotalTax / 2,
-            //     'Grand Total': PriceData.GrandTotal,
-            // };
-
-            // const pdfDoc = new PDFDocument(); // Create a new PDFDocument
-            // const invoiceName = await generateUniqueInvoiceName();
-            // const pdfPath = `${__dirname}/${invoiceName}.pdf`; // Path to save the PDF
-
-            // // Pipe PDF content to file
-            // pdfDoc.pipe(fs.createWriteStream(pdfPath));
-
-            // // Generate invoice content
-            // await generateInvoice(pdfDoc, invoiceData);
-
-            // // End the PDF document
-            // pdfDoc.end();
-
-            // // Wait for PDF generation to finish before uploading to S3
-            // pdfDoc.on('finish', async () => {
-            //     try {
-            //         // Upload PDF to S3
-            //         PdfUrl = await uploadToS3(pdfPath, `${invoiceName}.pdf`); //upload s3
-
-            //         // Send email with PDF invoice attached
-            //         const emailOptions = {
-            //             from: 'javascript.pgl@gmail.com',
-            //             to: email,
-            //             subject: 'Your Invoice',
-            //             text: `Please find attached invoice.`,
-            //             attachments: [
-            //                 {
-            //                     fileName: `${invoiceName}.pdf`,
-            //                     path: pdfPath,
-            //                 }
-            //             ]
-            //         };
-
-            //         await transporter.sendMail(emailOptions);
-
-            //         res.send({
-            //             success: 1,
-            //             message: "Lead Added Successfully",
-            //             data: { ...newLead._doc, PdfUrl: PdfUrl }
-            //         });
-            //     } catch (error) {
-            //         console.error('Error:', error);
-            //         res.status(500).json({ message: error.message });
-            //     }
-            // });
-            res.send({
-                success: 1,
-                message: "Lead Added Successfully",
-                data: { newLead }
-            });
-        }
-
+                await transporter.sendMail(emailOptions);
+            })
+        res.status(200).send({
+            success: 1, message: "Lead Added Successfully", data: { ...newLead._doc, PdfUrl: PdfUrl }
+        })
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).s.json({ message: error.message });
+        res.status(500).json({ message: error.message });
     }
 }
 
@@ -322,44 +389,41 @@ exports.sendOTPMessage = async (req, res) => {
 };
 
 
-async function generateInvoice(pdfDoc, data) {
-    console.log("data>>", data);
-    pdfDoc.fontSize(12);
-    pdfDoc.text(data['Company Name'], { align: 'center', underline: true });
-    pdfDoc.moveDown();
-    pdfDoc.text(data['Company Address'], { align: 'center' });
-    pdfDoc.moveDown();
-    pdfDoc.text(`GST No.: ${data['GSTIN']}`);
-    pdfDoc.text(`PAN Number: ${data['PAN Number']}`);
-    pdfDoc.moveDown();
-    pdfDoc.text('Invoice Details', { underline: true });
-    pdfDoc.moveDown();
-    pdfDoc.text(`Invoice Number: ${data['Invoice Number']}`);
-    pdfDoc.text(`Date: ${data['Date']}`);
-    pdfDoc.text(`Billing Address To: ${data['Billing Address To']}`);
-    pdfDoc.text(`Device Emi Number: ${data['Device Emi Number']}`);
-    pdfDoc.moveDown();
-    pdfDoc.text('Product Details', { underline: true });
-    pdfDoc.moveDown();
-    data['Product Details'].forEach(product => {
-        pdfDoc.text(`${product.name}: Quantity - ${product.quantity}, Price - ${product.price}`);
+function generateInvoice(invoiceData) {
+    return new Promise((resolve, reject) => {
+        // Create a new PDF document
+        const doc = new PDFDocument();
+
+        // Buffer to store PDF content
+        const pdfBuffer = [];
+
+        // Pipe PDF content to buffer
+        doc.on('data', (chunk) => {
+            pdfBuffer.push(chunk);
+        });
+
+        // Generate PDF content
+        doc.fontSize(20).text('Invoice', { align: 'center' });
+        doc.moveDown();
+
+        // Add invoice data
+        for (const [label, value] of Object.entries(invoiceData)) {
+            doc.text(`${label}: ${value}`);
+        }
+
+        // Finalize the PDF document
+        doc.end();
+
+        // Resolve the promise with the PDF buffer when the PDF is generated
+        doc.on('end', () => {
+            resolve(Buffer.concat(pdfBuffer));
+        });
+
+        // Handle errors
+        doc.on('error', (error) => {
+            reject(error);
+        });
     });
-    pdfDoc.moveDown();
-    pdfDoc.text('GST Calculation', { underline: true });
-    pdfDoc.moveDown();
-    pdfDoc.text(`CGST: ${data['CGST']}`);
-    pdfDoc.text(`SGST: ${data['SGST']}`);
-    pdfDoc.moveDown();
-    pdfDoc.text(`Grand Total: ${data['Grand Total']}`);
-    pdfDoc.moveDown();
-    pdfDoc.text('Terms & Conditions*', { underline: true });
-    pdfDoc.moveDown();
-    pdfDoc.text('1. Damage and liquid damage are not covered.');
-    pdfDoc.text('2. A service request must be generated within 48 hours.');
-    pdfDoc.text('3. Pressure display is not covered.');
-    pdfDoc.text('4. Internal issues are covered in this warranty.');
-    pdfDoc.text('5. This warranty starts after 365 days.');
-    // Add more terms and conditions as needed
 }
 async function generateUniqueInvoiceName() {
     const timestamp = Date.now(); // Get current timestamp
@@ -367,21 +431,24 @@ async function generateUniqueInvoiceName() {
     return `invoice_${timestamp}_${randomString}`;
 }
 
-async function uploadToS3(filePath, fileName) {
-    const fileContent = fs.readFileSync(filePath);
-    const params = {
-        Bucket: 'wecare1',
-        Key: fileName,
-        Body: fileContent
-    };
+function uploadToS3(filePath, fileName) {
+    return new Promise((resolve, reject) => {
+        const fileContent = fs.readFileSync(filePath);
 
-    try {
-        await s3.upload(filePath, params).promise();
-        return `https://wecare1.s3.ap-south-1.amazonaws.com/${fileName}.pdf`;
-    } catch (error) {
-        console.error('Error uploading to S3:', error);
-        throw error;
-    }
+        const params = {
+            Bucket: 'wecare1',
+            Key: fileName,
+            Body: fileContent
+        };
+
+        s3.upload(params, (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(data);
+            }
+        });
+    });
 }
 
 async function sendSMS(phoneNumber, message) {
