@@ -8,4 +8,9 @@ function generateOTP() {
 
     return OTP;
 }
-module.exports = { generateOTP }   
+function getGrandTotal(productPrice) {
+    const TotalTax = productPrice * 18 / 100;
+    const GrandTotal = productPrice + TotalTax;
+    return { TotalTax, GrandTotal };
+}
+module.exports = { generateOTP, getGrandTotal }   

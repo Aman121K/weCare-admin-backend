@@ -9,7 +9,7 @@ const AWS = require('aws-sdk');
 const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
-const { generateOTP } = require("../helpers/helpers");
+const { generateOTP, getGrandTotal } = require("../helpers/helpers");
 const moment = require('moment');
 const Razorpay = require("razorpay");
 const apiKey = '418331AgTI875N65f5d2c5P1';
@@ -37,6 +37,96 @@ AWS.config.update({
 
 const s3 = new AWS.S3();
 
+// exports.addLeads = async (req, res) => {
+//     let PdfUrl;
+//     const { agent_id, warranty_status, contact_name, phone_number, email, device_brand, device_emi_number, device_images, product_value, address, price } = req.body;
+
+//     const addLead = new Leads({
+//         agent_id: agent_id,
+//         warranty_status: warranty_status,
+//         contact_name: contact_name,
+//         phone_number: phone_number,
+//         email: email,
+//         device_brand: device_brand,
+//         device_emi_number: device_emi_number,
+//         device_images: device_images,
+//         product_value: product_value,
+//         address: address,
+//         price: price,
+//         added_date: Date.now(),
+//     });
+
+//     try {
+//         const newLead = await addLead.save();
+//         const currentDate = new Date().toLocaleDateString(); // Get current date
+//         const PriceData = await getGrandTotal(Number(product_value));
+//         console.log("getGrandTotal>>", PriceData)
+//         const invoiceData = {
+//             'Company Name': "KABUJI SERVICES INDIA PRIVATE LIMITED",
+//             'Company Address': "CO MOHAN VIR SO BRAHAM SINGH, HN 61 KH KABUJI SERVICES INDIA PRIVATE LIMITED, POST SARURPUR KALAN, BARAUT BAGHPAT ROAD, BIHARIPUR, Baghpat, Uttar Pradesh, 250619",
+//             'PAN Number': 'AAICK6814B',
+//             'GSTIN': '09AAICK6814B1ZM',
+//             'Invoice Number': 'INV-001',
+//             'Billing Address To': address,
+//             'Date': currentDate,
+//             'Device Emi Number': device_emi_number,
+//             'Product Details': [
+//                 { name: device_brand, quantity: 1, price: product_value },
+//             ],
+//             'CGST': PriceData.TotalTax / 2,
+//             'SGST': PriceData.TotalTax / 2,
+//             'Grand Total': PriceData.GrandTotal,
+//         };
+
+//         // Generate PDF invoice
+//         const pdfDoc = new PDFDocument(); // Create a new PDFDocument
+//         const invoiceName = await generateUniqueInvoiceName();
+//         const pdfPath = `${__dirname}/${invoiceName}.pdf`; // Path to save the PDF
+
+//         // Set response headers for PDF content
+//         // res.setHeader('Content-Type', 'application/pdf');
+//         // res.setHeader('Content-Disposition', `attachment; filename="${invoiceName}.pdf"`);
+
+//         pdfDoc.pipe(fs.createWriteStream(pdfPath)); // Pipe PDF content to file
+//         await generateInvoice(pdfDoc, invoiceData); // Generate invoice content
+//         pdfDoc.end(); // End the PDF document
+
+//         pdfDoc.on('finish', async () => {
+//             try {
+//                 // Upload PDF to S3
+//                 PdfUrl = await uploadToS3(pdfPath, `${invoiceName}.pdf`);
+
+//                 // Send email with PDF invoice attached
+//                 const emailOptions = {
+//                     from: 'javascript.pgl@gmail.com',
+//                     to: email,
+//                     subject: 'Your Invoice',
+//                     text: `Please find attached invoice.`,
+//                     attachments: [
+//                         {
+//                             fileName: `${invoiceName}.pdf`,
+//                             path: pdfPath,
+//                         }
+//                     ]
+//                 };
+
+//                 await transporter.sendMail(emailOptions);
+
+//                 res.status(200).send({
+//                     success: 1,
+//                     message: "Lead Added Successfully",
+//                     data: { ...newLead._doc, PdfUrl: PdfUrl }
+//                 });
+//             } catch (error) {
+//                 console.error('Error:', error);
+//                 res.status(500).json({ message: error.message });
+//             }
+//         });
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// }
+
 exports.addLeads = async (req, res) => {
     let PdfUrl;
     const { agent_id, warranty_status, contact_name, phone_number, email, device_brand, device_emi_number, device_images, product_value, address, price } = req.body;
@@ -59,58 +149,74 @@ exports.addLeads = async (req, res) => {
     try {
         const newLead = await addLead.save();
         const currentDate = new Date().toLocaleDateString(); // Get current date
+        const PriceData = await getGrandTotal(Number(product_value));
+        console.log("getGrandTotal>>", PriceData)
         const invoiceData = {
-            'Company Name': "WeCare",
-            'Company Address': "#114 chd",
-            'PAN Number': '11312321321',
-            'GSTIN': 'fewfewf131321412ewf',
+            'Company Name': "KABUJI SERVICES INDIA PRIVATE LIMITED",
+            'Company Address': "CO MOHAN VIR SO BRAHAM SINGH, HN 61 KH KABUJI SERVICES INDIA PRIVATE LIMITED, POST SARURPUR KALAN, BARAUT BAGHPAT ROAD, BIHARIPUR, Baghpat, Uttar Pradesh, 250619",
+            'PAN Number': 'AAICK6814B',
+            'GSTIN': '09AAICK6814B1ZM',
             'Invoice Number': 'INV-001',
             'Billing Address To': address,
             'Date': currentDate,
             'Device Emi Number': device_emi_number,
             'Product Details': [
                 { name: device_brand, quantity: 1, price: product_value },
-
             ],
-            'price': price
+            'CGST': PriceData.TotalTax / 2,
+            'SGST': PriceData.TotalTax / 2,
+            'Grand Total': PriceData.GrandTotal,
         };
 
-        // Generate PDF invoice
         const pdfDoc = new PDFDocument(); // Create a new PDFDocument
         const invoiceName = await generateUniqueInvoiceName();
         const pdfPath = `${__dirname}/${invoiceName}.pdf`; // Path to save the PDF
 
-        // Set response headers for PDF content
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${invoiceName}.pdf"`);
+        // Pipe PDF content to file
+        pdfDoc.pipe(fs.createWriteStream(pdfPath));
 
-        pdfDoc.pipe(fs.createWriteStream(pdfPath)); // Pipe PDF content to file
-        generateInvoice(pdfDoc, invoiceData); // Generate invoice content
-        pdfDoc.end(); // End the PDF document
+        // Generate invoice content
+        await generateInvoice(pdfDoc, invoiceData);
 
-        PdfUrl = `https://wecare1.s3.ap-south-1.amazonaws.com/${invoiceName}.pdf`;
+        // End the PDF document
+        pdfDoc.end();
 
-        // Send email with PDF invoice attached
-        const emailOptions = {
-            from: 'javascript.pgl@gmail.com',
-            to: email,
-            subject: 'Your Invoice',
-            text: `Please find attached invoice.`,
-            attachments: [
-                {
-                    fileName: `${invoiceName}.pdf`,
-                    path: pdfPath,
-                }
-            ]
-        };
+        // Wait for PDF generation to finish before uploading to S3
+        pdfDoc.on('finish', async () => {
+            try {
+                // Upload PDF to S3
+                PdfUrl = await uploadToS3(pdfPath, `${invoiceName}.pdf`); //upload s3
 
-        await transporter.sendMail(emailOptions);
+                // Send email with PDF invoice attached
+                const emailOptions = {
+                    from: 'javascript.pgl@gmail.com',
+                    to: email,
+                    subject: 'Your Invoice',
+                    text: `Please find attached invoice.`,
+                    attachments: [
+                        {
+                            fileName: `${invoiceName}.pdf`,
+                            path: pdfPath,
+                        }
+                    ]
+                };
 
-        res.status(200).send({
-            success: 1, message: "Lead Added Successfully", data: { ...newLead._doc, PdfUrl: PdfUrl }
+                await transporter.sendMail(emailOptions);
+
+                res.send({
+                    success: 1,
+                    message: "Lead Added Successfully",
+                    data: { ...newLead._doc, PdfUrl: PdfUrl }
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                res.status(500).json({ message: error.message });
+            }
         });
+
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error:', error);
+        res.status(500).s.json({ message: error.message });
     }
 }
 
@@ -184,65 +290,65 @@ exports.showAllLeads = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
-exports.getInvoices = async (req, res) => {
-    try {
-        // Example invoice data (replace with your actual invoice data)
-        const invoiceData = {
-            'Invoice Number': 'INV-001',
-            'Date': '2024-03-15',
-            'Due Date': '2024-04-15',
-            'Total Amount': '100',
-            'Customer Name': 'John Doe',
-            'Customer Address': '123 Main St, Anytown, USA',
-            'Items': [
-                { name: 'Product 1', quantity: 2, unitPrice: '$50', total: '$100' },
-                { name: 'Product 2', quantity: 1, unitPrice: '$30', total: '$30' },
-            ],
-            'Tax': '9%',
-            'Shipping': '0.00',
-            'Grand Total': '$115',
-            // Add more invoice data as needed
-        };
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename="invoice.pdf"');
+// exports.getInvoices = async (req, res) => {
+//     try {
+//         // Example invoice data (replace with your actual invoice data)
+//         const invoiceData = {
+//             'Invoice Number': 'INV-001',
+//             'Date': '2024-03-15',
+//             'Due Date': '2024-04-15',
+//             'Total Amount': '100',
+//             'Customer Name': 'John Doe',
+//             'Customer Address': '123 Main St, Anytown, USA',
+//             'Items': [
+//                 { name: 'Product 1', quantity: 2, unitPrice: '$50', total: '$100' },
+//                 { name: 'Product 2', quantity: 1, unitPrice: '$30', total: '$30' },
+//             ],
+//             'Tax': '9%',
+//             'Shipping': '0.00',
+//             'Grand Total': '$115',
+//             // Add more invoice data as needed
+//         };
+//         res.setHeader('Content-Type', 'application/pdf');
+//         res.setHeader('Content-Disposition', 'attachment; filename="invoice.pdf"');
 
-        const invoiceName = generateUniqueInvoiceName();
-        // Generate the invoice PDF
-        generateInvoice(invoiceData)
-            .then(async (pdfBuffer) => {
-                // Set response headers for PDF content
-                const filePath = path.join(invoicesDirectory, `${invoiceName}.pdf`);
-                fs.writeFileSync(filePath, pdfBuffer);
+//         const invoiceName = generateUniqueInvoiceName();
+//         // Generate the invoice PDF
+//         generateInvoice(invoiceData)
+//             .then(async (pdfBuffer) => {
+//                 // Set response headers for PDF content
+//                 const filePath = path.join(invoicesDirectory, `${invoiceName}.pdf`);
+//                 fs.writeFileSync(filePath, pdfBuffer);
 
-                await uploadToS3(filePath, `${invoiceName}.pdf`);
+//                 await uploadToS3(filePath, `${invoiceName}.pdf`);
 
-                const emailOptions = {
-                    from: 'javascript.pgl@gmail.com',
-                    to: email,
-                    subject: 'Your OTP',
-                    text: `Plese check your Invoice`,
-                    attachments: [
-                        {
-                            fileName: `${invoiceName}.pdf`,
-                            path: filePath,
-                        }
-                    ]
-                };
+//                 const emailOptions = {
+//                     from: 'javascript.pgl@gmail.com',
+//                     to: email,
+//                     subject: 'Your OTP',
+//                     text: `Plese check your Invoice`,
+//                     attachments: [
+//                         {
+//                             fileName: `${invoiceName}.pdf`,
+//                             path: filePath,
+//                         }
+//                     ]
+//                 };
 
-                await transporter.sendMail(emailOptions);
+//                 await transporter.sendMail(emailOptions);
 
-                // Send the PDF buffer as response
-                res.send(pdfBuffer);
-            })
-            .catch((error) => {
-                console.error('Error generating invoice:', error);
-                res.status(500).send('Error generating invoice');
-            });
-    } catch (error) {
-        console.error('Error generating invoice:', error);
-        res.status(500).send('Error generating invoice');
-    }
-}
+//                 // Send the PDF buffer as response
+//                 // res.send(pdfBuffer);
+//             })
+//             .catch((error) => {
+//                 console.error('Error generating invoice:', error);
+//                 res.status(500).send('Error generating invoice');
+//             });
+//     } catch (error) {
+//         console.error('Error generating invoice:', error);
+//         res.status(500).send('Error generating invoice');
+//     }
+// }
 
 exports.sendOTPMail = async (req, res) => {
     const { email } = req.body;
@@ -295,7 +401,8 @@ exports.sendOTPMessage = async (req, res) => {
 };
 
 
-function generateInvoice(pdfDoc, data) {
+async function generateInvoice(pdfDoc, data) {
+    console.log("data>>", data);
     pdfDoc.fontSize(12);
     pdfDoc.text(data['Company Name'], { align: 'center', underline: true });
     pdfDoc.moveDown();
@@ -339,24 +446,21 @@ async function generateUniqueInvoiceName() {
     return `invoice_${timestamp}_${randomString}`;
 }
 
-function uploadToS3(filePath, fileName) {
-    return new Promise((resolve, reject) => {
-        const fileContent = fs.readFileSync(filePath);
+async function uploadToS3(filePath, fileName) {
+    const fileContent = fs.readFileSync(filePath);
+    const params = {
+        Bucket: 'wecare1',
+        Key: fileName,
+        Body: fileContent
+    };
 
-        const params = {
-            Bucket: 'wecare1',
-            Key: fileName,
-            Body: fileContent
-        };
-
-        s3.upload(params, (err, data) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(data);
-            }
-        });
-    });
+    try {
+        await s3.upload(filePath, params).promise();
+        return `https://wecare1.s3.ap-south-1.amazonaws.com/${fileName}.pdf`;
+    } catch (error) {
+        console.error('Error uploading to S3:', error);
+        throw error;
+    }
 }
 
 async function sendSMS(phoneNumber, message) {
