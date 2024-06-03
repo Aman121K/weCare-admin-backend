@@ -9,9 +9,10 @@ const orderController = require('../controller/orderController');
 const { postContact, getAllUsers } = require('../controller/contactController');
 
 const { addNewUser, loginUser, UpdateAgentData, allSubAdmins, overviewData } = require("../controller/UserController");
-const { addLeads, showAllLeads, getInvoices, sendOTPMail, sendOTPMessage, orders, paymentSucces } = require("../controller/LeadsController");
+const { addLeads, showAllLeads, getInvoices, sendOTPMail, sendOTPMessage, orders, paymentSucces, tests } = require("../controller/LeadsController");
 
 router.post("/orders", orders)
+router.post("/testing",tests),
 router.post('/paymentsuccess', paymentSucces)
 router.post("/add-user", addNewUser);
 router.post("/login", loginUser);

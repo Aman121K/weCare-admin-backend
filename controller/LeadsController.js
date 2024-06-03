@@ -478,6 +478,22 @@ async function sendSMS(phoneNumber, message) {
 }
 
 
+exports.tests=async(req,res)=>{
+    res.status(200).send({
+        success: 1,
+        message: "OTP Sent",
+        // data: { phoneNumber: phoneNumber, otp: otp }
+    });
+    testing(10)
+
+
+}
+function testing(num){
+    console.log(num);
+    const newNum=num+5;
+    console.log("New num is>>",newNum);
+}
+
 //logo company name
 //pan numer gst number
 //billing address from
