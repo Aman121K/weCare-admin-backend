@@ -209,16 +209,16 @@ exports.addLeads = async (req, res) => {
 }
 
 exports.orders = async (req, res) => {
+    console.log("whole request>>", req.body)
     try {
-
         const instance = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID,
             key_secret: process.env.RAZORPAY_SECRET
         })
         const options = {
-            amount: 10000,
+            amount: JSON.parse(req.body.amount)*100,
             currency: 'INR',
-            receipt: "Order_id_123"
+            receipt: req.body.receipt
         }
         const order = await instance.orders.create(options);
         if (!order) return res.status(500).send("Some error ocured");
@@ -478,7 +478,7 @@ async function sendSMS(phoneNumber, message) {
 }
 
 
-exports.tests=async(req,res)=>{
+exports.tests = async (req, res) => {
     res.status(200).send({
         success: 1,
         message: "OTP Sent",
@@ -488,10 +488,10 @@ exports.tests=async(req,res)=>{
 
 
 }
-function testing(num){
+function testing(num) {
     console.log(num);
-    const newNum=num+5;
-    console.log("New num is>>",newNum);
+    const newNum = num + 5;
+    console.log("New num is>>", newNum);
 }
 
 //logo company name
