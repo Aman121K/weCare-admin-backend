@@ -20,5 +20,5 @@ app.use(express.json());
 connectDB();
 
 app.listen(port,"0.0.0.0", () => {
-    console.log(`connected to server on PORT ${PORT}`)
+    console.log(`connected to server on PORT ${port}`)
 })
