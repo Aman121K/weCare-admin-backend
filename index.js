@@ -5,7 +5,7 @@ const connectDB = require("./db");
 const bodyParser = require("body-parser");
 const routes = require("./routes/index");
 const cors = require("cors");
-const PORT = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(cors({
     origin: "*",
@@ -19,6 +19,6 @@ app.use(express.json());
 
 connectDB();
 
-app.listen(PORT, () => {
+app.listen(port,"0.0.0.0", () => {
     console.log(`connected to server on PORT ${PORT}`)
 })
