@@ -127,12 +127,14 @@ exports.overviewData = async (req, res) => {
                 }
             }
         ];
+
         const subAdminAddedToday = await User.countDocuments({
             added_date: {
                 $gte: new Date(new Date().setHours(0, 0, 0)), // Start of the current day
                 $lt: new Date(new Date().setHours(23, 59, 59)) // End of the current day
             }
         });
+
         const LeadsAddedToday = await Leads.countDocuments({
             added_date: {
                 $gte: new Date(new Date().setHours(0, 0, 0)), // Start of the current day
@@ -158,30 +160,31 @@ exports.overviewData = async (req, res) => {
         ];
 
         const totalEarningsSingleDay = await Leads.aggregate(EarningsToday);
-        const subAdmin = (await User.find()).length;
-        const allLeads = (await Leads.find()).length;
-        const toalEarning = await Leads.aggregate(pipeline);
+        const subAdmin = await User.countDocuments();
+        const allLeads = await Leads.countDocuments();
+        const totalEarning = await Leads.aggregate(pipeline);
 
         const FullData = {
             subAdmin: subAdmin,
             allLeads: allLeads,
-            toalEarning: toalEarning[0].totalPrice,
-        }
+            toalEarning: totalEarning.length > 0 ? totalEarning[0].totalPrice : 0,
+        };
+
         const oneDayData = {
             subAdmin: subAdminAddedToday,
             allLeads: LeadsAddedToday,
-            toalEarning: totalEarningsSingleDay[0].totalPrice,
-        }
+            toalEarning: totalEarningsSingleDay.length > 0 ? totalEarningsSingleDay[0].totalPrice : 0,
+        };
 
         return res.status(200).json({
             success: 1,
             message: "Data Found",
             data: { fullData: FullData, oneDayData: oneDayData }
-        })
+        });
 
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
-}
+};
 
 
